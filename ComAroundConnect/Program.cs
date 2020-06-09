@@ -1,24 +1,30 @@
 ﻿using Microsoft.AnalysisServices.AdomdClient;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ComAroundConnect
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
+            const string Server = "";
+            const string UserName = "";
+            const string Password = "";
+            const string Model = "";
+
 
             // Code from https://csharp.hotexamples.com/examples/-/AdomdConnection/Open/php-adomdconnection-open-method-examples.html
             using (AdomdConnection mdConn = new AdomdConnection())
             {
-                mdConn.ConnectionString = "provider=msolap;Data Source=(local);initial catalog=HabraCube;";
+                mdConn.ConnectionString = $"Provider=MSOLAP;Data Source=asazure://westeurope.asazure.windows.net/{Server};Initial Catalog={Model};User ID={UserName};Password={Password};Persist Security Info=True;Impersonation Level=Impersonate";
                 mdConn.Open();
                 AdomdCommand mdCommand = mdConn.CreateCommand();
-                mdCommand.CommandText = "SELECT {[Measures].[Vote], [Measures].[Votes Count]} ON COLUMNS, [Dim Time].[Month Name].MEMBERS ON ROWS FROM [Habra DW]"; // << MDX Query // work with CellSet 
+
+                mdCommand.CommandText = @"
+                    SELECT
+                        NON EMPTY[DimDate].[Year].members ON 0,
+                        [Measures].[Votes] ON 1
+                    FROM[Model]"; // << MDX Query 
                 CellSet cs = mdCommand.ExecuteCellSet(); 
                 if (cs.Axes.Count != 2) return;
                 TupleCollection tuplesOnColumns = cs.Axes[0].Set.Tuples;
